@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 import time
 import random
+import ProcessingAuthorName as Pr
 
 url_base = 'https://dl.acm.org/action'
 
@@ -19,6 +20,7 @@ params = {
 }
 
 
+# Get HTML of website
 def GetPageContent(url):
     respone = requests.get(url, headers=headers, params=params)
     if respone.status_code == 200:
@@ -27,6 +29,7 @@ def GetPageContent(url):
         return soup
 
 
+# Get link of paper
 def getLinkPaper():
     lst_link = []
     url = url_search
@@ -38,9 +41,11 @@ def getLinkPaper():
     return lst_link
 
 
+# result array contain information of paper
 result = []
 
 
+# Crawl daya in website
 def CrawlDataPaper():
     lst_link = getLinkPaper()
     for link in lst_link:
@@ -49,26 +54,36 @@ def CrawlDataPaper():
         # lst_reference = []
         soup = GetPageContent(link)
         authors = soup.find_all('li', class_='loa__item')
+
+        # get author in website
         for author in authors:
             lst_authors.append(author.find('a').get('title'))
-        if name_author in lst_authors:
-            d['Content_Paper'] = soup.find('h1', class_='citation__title').text
-            d['Link_Paper'] = link
-            d['Authors'] = lst_authors
-            d['Public_time'] = soup.find(
-                'span', class_='epub-section__date').text
-            d['Public_Location'] = soup.find(
-                'span', class_='epub-section__title').text
-            references = soup.find_all('span', class_='references__note')
-        else:
-            continue
-        result.append(d)
+
+        # compare input name with name in website
+        for name in lst_authors:
+            if Pr.checkAuthorName(name, name_author) == 1:
+                d['Content_Paper'] = soup.find(
+                    'h1', class_='citation__title').text
+                d['Link_Paper'] = link
+                d['Authors'] = lst_authors
+                d['Public_time'] = soup.find(
+                    'span', class_='epub-section__date').text
+                d['Public_Location'] = soup.find(
+                    'span', class_='epub-section__title').text
+                references = soup.find_all('span', class_='references__note')
+                result.append(d)
+                break
+            else:
+                continue
 
 
 name_author = input('Input name author to find paper:')
+numberOfPage = int(input("Input number of page"))
+
 url_search = url_base + '/doSearch?AllField=' + \
     str(name_author).replace(' ', '+')
-for i in range(0, 5):
+
+for i in range(0, numberOfPage):
     params['startPage'] = i
     respone = requests.get(url_search, headers=headers, params=params)
     if respone.status_code == 200:
