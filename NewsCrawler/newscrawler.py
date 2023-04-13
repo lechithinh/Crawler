@@ -73,6 +73,7 @@ def crawl_post(url_topic, limit, driver, output_list):
 
 options = webdriver.ChromeOptions()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
+options.add_argument('headless')
 driver = webdriver.Chrome(service= Service(PATH), options=options)
 driver.maximize_window()
 driver.get("https://vnexpress.net")
