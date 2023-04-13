@@ -9,7 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 PATH = "chromedriver.exe"
 options = webdriver.ChromeOptions()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
-options.add_argument('headless')
+options.add_argument('headless') #do not open the browser
 driver = webdriver.Chrome(service= Service(PATH), options=options)
 driver.maximize_window()
 driver.get("https://www.facebook.com/UIT.Fanpage")
@@ -23,10 +23,9 @@ BUTTON_SHOWALLCMT_PATH = "//span[text() = 'All comments']"
 BUTTON_CMTVIEWMORE_PATH = "//span[contains(text(),'View')]/ancestor::div[contains(@class,'x1i10hfl xjbqb8w')]"
 USER_NAME_PATH = "//span[@class = 'x3nfvp2']//span"
 USER_CMT_PATH = "//div[@dir='auto']"
-output_dict = {}
 
 
-def crawl_post(idx, num_post, driver):
+def crawl_post(idx, num_post,output_dict):
     for i in range(idx, num_post + 1):
         container_path = f"//div[@aria-posinset = '{i}']"
         try:
@@ -79,18 +78,19 @@ def crawl_post(idx, num_post, driver):
             output_dict[posts_text] = post_dict
 
 def crawlFB(limit):
+    output_dict = {}
     num_post = 0
     while limit:
-        timeout = time.time() + 0.5
+        timeout = time.time() + 0.25
         while True:
             while True:
-                driver.execute_script("window.scrollTo(0, window.scrollY + 40);")
+                driver.execute_script("window.scrollTo(0, window.scrollY + 20);")
                 if time.time() > timeout:
                     break
-            post_container = driver.find_elements(By.XPATH,"{}".format(POST_CONTAINER_PATH))
+            post_container = driver.find_elements(By.XPATH,"//div[@aria-posinset]")
             if len(post_container) >= (5 + num_post):
                 break
-        time.sleep(1)
+        time.sleep(3)
 
         if limit > 5:
             idx = num_post + 1
@@ -100,9 +100,10 @@ def crawlFB(limit):
             idx = num_post + 1
             num_post = num_post + limit
             limit = 0
-        crawl_post(idx,num_post,driver)
+        crawl_post(idx,num_post,output_dict)
 
     return output_dict
+
 
 
 
