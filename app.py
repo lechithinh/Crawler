@@ -6,19 +6,8 @@ from CrawlerPaper import PaperCrawl
 from ImageCrawler import ImageCrawl
 from paginator import paginator
 from NewsCrawler import crawl_post, Crawl
-#news
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
 import pandas as pd
-
-# PATH = "chromedriver.exe"
-# options = webdriver.ChromeOptions()
-# options.add_experimental_option('excludeSwitches', ['enable-logging'])
-# driver = webdriver.Chrome(service= Service(PATH), options=options)
-# driver.maximize_window()
-# driver.get("https://vnexpress.net")
+from FacebookCrawler import crawlFB
 
 st.title('CS115 | CRAWLER MODULES')
 st.markdown(
@@ -44,7 +33,7 @@ st.sidebar.subheader('Parameters')
 
 app_mode = st.sidebar.selectbox('Choose the App mode',
                                 ['General information',
-                                    'Paper Crawler', "Image Crawler", "News Crawler"]
+                                    'Paper Crawler', "Image Crawler", "News Crawler", "Facebook Crawler"]
                                 )
 
 if app_mode == 'General information':
@@ -183,6 +172,39 @@ elif app_mode == 'News Crawler':
                 df = pd.DataFrame(value.items(), columns=['user Name','user Comment'])
                 st.text(f'Post title: {key}')
                 st.write(df)
-            
+                
+elif app_mode == 'Facebook Crawler':
+
+    st.sidebar.markdown('---')
+
+    st.markdown(
+    """
+    # Facebook Crawler 
+    <style>
+    [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
+        width: 400px;
+    }
+    [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {
+        width: 400px;
+        margin-left: -400px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+    limit_post = st.text_input("Enter the number of posts")
+    start_crawl = st.button("crawl")
+    if limit_post and start_crawl:
+        result = crawlFB(int(limit_post))
+        for key, value in result.items():
+            st.text(f"The content post: {key}")
+            if isinstance(value, dict):
+                df = pd.DataFrame(value.items(), columns=['userName', 'userComment'])
+                st.write(df)
+            else:
+                st.text('this post has 0 comment')
+    
+  
 
         
