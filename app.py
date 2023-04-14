@@ -5,9 +5,9 @@ from PIL import Image
 from CrawlerPaper import PaperCrawl 
 from ImageCrawler import ImageCrawl
 from paginator import paginator
-from NewsCrawler import crawl_post, Crawl
 import pandas as pd
 from FacebookCrawler import crawlFB
+from NewsCrawler import CrawlNewsWebsite
 
 st.title('CS115 | CRAWLER MODULES')
 st.markdown(
@@ -102,7 +102,7 @@ elif app_mode == 'Paper Crawler':
         paper_dataframe = PaperCrawl(author_name,int(number_paper))
         st.write(paper_dataframe)
         
-elif app_mode == 'Image Crawler':
+elif app_mode == 'Image Crawler': #fix storing locally
 
     st.sidebar.markdown('---')
 
@@ -151,27 +151,23 @@ elif app_mode == 'News Crawler':
     """,
     unsafe_allow_html=True,
 )
-
-
-    topic_dict, output_list = Crawl()
-    if topic_dict: 
-        topic = st.text_input("Choose a topic: ")
-        limit = st.text_input("Enter limit post: ")
-        crawl = st.button("crawl")
-        if topic != "" and limit !="" and crawl: 
-            topic = int(topic)
-            limit = int(limit)
-            url_topic = topic_dict[topic][1]
-            print(url_topic)
-            while limit > 1:
-                limit, url_next_page = crawl_post(url_topic, limit, output_list)
-                if limit > 1:
-                    url_topic = url_next_page
-
-            for key, value in output_list.items():
+                
+    topic = st.text_input("Choose a topic: ")
+    limit = st.text_input("Enter limit post: ")
+    start_crawl = st.button("crawl")
+    if topic and limit and start_crawl:
+        result = CrawlNewsWebsite(topic,int(limit))
+        print(result)
+        for key, value in result.items():
+            if isinstance(value, dict):
                 df = pd.DataFrame(value.items(), columns=['user Name','user Comment'])
                 st.text(f'Post title: {key}')
                 st.write(df)
+                
+            else:
+                st.text(f'Post title: {key}')
+                st.text("This post has no comment")
+               
                 
 elif app_mode == 'Facebook Crawler':
 
