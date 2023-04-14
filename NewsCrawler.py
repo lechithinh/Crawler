@@ -71,6 +71,7 @@ def crawl_post(url_topic, limit,output_dict):
 def TopicList():
     all_topic = driver.find_elements(By.XPATH, "//ul[contains(@class,'cat-menu')]")
     topic_dict = {}
+    idx = 1
     for topic in all_topic:
         li = topic.find_elements(By.XPATH, "li")
         a = li[0].find_element(By.TAG_NAME, "a")
@@ -79,16 +80,16 @@ def TopicList():
         topic_href = a.get_attribute('href')
 
         if topic_title not in ['Video', 'Podcasts']:
-            topic_dict[topic_title] = topic_href
-    
+            topic_dict[idx] = [topic_title,topic_href]
+            idx += 1
     return topic_dict
-    # return topic_dict[topic]
+
 
 
 def CrawlNewsWebsite(topic,limit):
     output_dict = {}
     topic_dict = TopicList()
-    url_topic = topic_dict[topic]
+    url_topic = topic_dict[topic][1]
     while limit > 1:
         limit = crawl_post(url_topic, limit, output_dict)
         if limit > 1:

@@ -7,7 +7,7 @@ from ImageCrawler import ImageCrawl
 from paginator import paginator
 import pandas as pd
 from FacebookCrawler import crawlFB
-from NewsCrawler import CrawlNewsWebsite
+from NewsCrawler import CrawlNewsWebsite,TopicList
 
 st.title('CS115 | CRAWLER MODULES')
 st.markdown(
@@ -151,8 +151,16 @@ elif app_mode == 'News Crawler':
     """,
     unsafe_allow_html=True,
 )
-                
-    topic = st.text_input("Choose a topic: ")
+    topic_lst = st.text("Topic list: ")
+    topic_dict = TopicList()
+    len_dict = len(topic_dict)
+    topic_arr = []
+    for idx,topic in topic_dict.items():
+        topic_arr.append([topic[0]])
+    df = pd.DataFrame(np.array(topic_arr),index=range(1,len_dict+1),columns=['Topic'])
+    st.dataframe(df.T)        
+
+    topic = st.number_input(f"Choose a topic (1 to {len_dict}): ",format="%i",min_value=1,max_value=len_dict,step=1)
     limit = st.text_input("Enter limit post: ")
     start_crawl = st.button("crawl")
     if topic and limit and start_crawl:
