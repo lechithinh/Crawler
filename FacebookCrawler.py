@@ -81,16 +81,16 @@ def crawl_post(idx, num_post, driver):
 def crawlFB(limit):
     num_post = 0
     while limit:
-        timeout = time.time() + 0.5
         while True:
+            timeout = time.time() + 0.5
             while True:
-                driver.execute_script("window.scrollTo(0, window.scrollY + 40);")
+                driver.execute_script("window.scrollTo(0, window.scrollY + 10);")
                 if time.time() > timeout:
                     break
             post_container = driver.find_elements(By.XPATH,"{}".format(POST_CONTAINER_PATH))
             if len(post_container) >= (5 + num_post):
                 break
-        time.sleep(1)
+        time.sleep(2)
 
         if limit > 5:
             idx = num_post + 1
