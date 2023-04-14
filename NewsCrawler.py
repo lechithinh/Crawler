@@ -7,20 +7,19 @@ import pandas as pd
 PATH = "chromedriver.exe"
 options = webdriver.ChromeOptions()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
+options.add_argument('headless') #do not open the browser
 driver = webdriver.Chrome(service= Service(PATH), options=options)
 driver.maximize_window()
 driver.get("https://vnexpress.net")
 
-def crawl_post(url_topic, limit,output_list):
+def crawl_post(url_topic, limit,output_dict):
     driver.get(url_topic)
-    try:
-        url_next_page = driver.find_element(By.XPATH, "//a[@class = 'btn-page active']/following-sibling::a").get_attribute('href')
-    except:
-        url_next_page = ''
 
     post = driver.find_elements(By.XPATH,"//article[contains(@class, 'item-news')]/h3[@class = 'title-news']/a")
+
     link_post = []
     title_posts = []
+
     for pst in post:
         link_post.append(pst.get_attribute('href'))
         title_posts.append(pst.text)
@@ -47,35 +46,32 @@ def crawl_post(url_topic, limit,output_list):
         for cmt in user_cmt_less:
             driver.execute_script("arguments[0].style.display = 'none';", cmt)
 
-        user_name = driver.find_elements(By.XPATH, "//b")
+        user_name = driver.find_elements(By.XPATH, "//span[@class = 'txt-name']")
         user_cmt_short = driver.find_elements(By.XPATH, "//p[@class = 'full_content']")
         user_cmt_long = driver.find_elements(By.XPATH, "//p[@class = 'content_more']")
 
-        arr = []
-        for usr in user_name:
-            if usr.text == '':
-                continue
-            for cmt_short in user_cmt_short:
-                if cmt_short.text.find(usr.text, 0, len(usr.text)) != -1:
-                    arr.append([usr.text, cmt_short.text[len(usr.text):]])
-                    break
-            for cmt_long in user_cmt_long:
-                if cmt_long.text.find(usr.text, 0, len(usr.text)) != -1:
-                    arr.append([usr.text, cmt_long.text[len(usr.text):]])
-                    break
+        cmt_dict = {}
+        if len(user_name) == 0:
+            output_dict[title_posts[i]] = "this post has 0 comment"
 
-        dct = {}
-        for a in arr:
-            dct[a[0]] = a[1]
-        output_list[title_posts[i]] = dct
+        else:
+            for usr in user_name:
+                for cmt_short in user_cmt_short:
+                    if cmt_short.text.find(usr.text, 0, len(usr.text)) != -1:
+                        cmt_dict[usr.text] = cmt_short.text[len(usr.text):]
+                        break
+                for cmt_long in user_cmt_long:
+                    if cmt_long.text.find(usr.text, 0, len(usr.text)) != -1:
+                        cmt_dict[usr.text] = cmt_long.text[len(usr.text):]
+                        break
+            output_dict[title_posts[i]] = cmt_dict
 
-    return limit, url_next_page
+    return limit
 
-def Crawl():
-    output_list = {}
+def TopicList():
     all_topic = driver.find_elements(By.XPATH, "//ul[contains(@class,'cat-menu')]")
     topic_dict = {}
-    for idx,topic in enumerate(all_topic):
+    for topic in all_topic:
         li = topic.find_elements(By.XPATH, "li")
         a = li[0].find_element(By.TAG_NAME, "a")
 
@@ -83,13 +79,26 @@ def Crawl():
         topic_href = a.get_attribute('href')
 
         if topic_title not in ['Video', 'Podcasts']:
-            topic_dict[idx] = [topic_title,topic_href]
-
-    for key, value in topic_dict.items():
-        print(f"{key}: {value[0]}")
+            topic_dict[topic_title] = topic_href
     
-    return topic_dict, output_list
+    return topic_dict
+    # return topic_dict[topic]
+
+
+def CrawlNewsWebsite(topic,limit):
+    output_dict = {}
+    topic_dict = TopicList()
+    url_topic = topic_dict[topic]
+    while limit > 1:
+        limit = crawl_post(url_topic, limit, output_dict)
+        if limit > 1:
+            try:
+                url_next_page = driver.find_element(By.XPATH, "//a[@class = 'btn-page active']/following-sibling::a").get_attribute('href')
+            except:
+                return output_dict
+            else:
+                url_topic = url_next_page
+    return output_dict
 
 
 
-  
