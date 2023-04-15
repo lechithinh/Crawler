@@ -3,11 +3,11 @@ import pickle
 import streamlit as st
 from PIL import Image
 from CrawlerPaper import PaperCrawl 
-from ImageCrawler import ImageCrawl
 from paginator import paginator
 import pandas as pd
 from FacebookCrawler import crawlFB
 from NewsCrawler import CrawlNewsWebsite, TopicList
+from ImageCrawler import ImageCrawl
 
 st.title('CS232 | CRAWLER MODULES')
 st.markdown(
@@ -29,7 +29,8 @@ st.markdown(
 st.sidebar.title('Workspace - Options')
 st.sidebar.subheader('Parameters')
 
-
+def convert_df(df):
+    return df.to_csv(index=None).encode('utf-8')
 
 app_mode = st.sidebar.selectbox('Choose the App mode',
                                 ['General information',
@@ -115,11 +116,7 @@ elif app_mode == 'Paper Crawler':
         paper_dataframe = PaperCrawl(author_name,int(number_paper))
         st.write(paper_dataframe)
         df = paper_dataframe
-
-    def convert_df(df):
-        # IMPORTANT: Cache the conversion to prevent computation on every rerun
-        return df.to_csv(index=None).encode('utf-8')
-
+        
     csv = convert_df(df)
 
     st.download_button(
@@ -188,12 +185,17 @@ elif app_mode == 'News Crawler':
     """,
     unsafe_allow_html=True,
 )
-    lst_topics = TopicList()
-    # df_topic = pd.DataFrame(lst_topics)
-    df_topic = pd.DataFrame(data=lst_topics.keys())
-    st.table(df_topic.T)
-                
-    topic = st.text_input("Choose a topic: ")
+
+    topic_lst = st.text("Topic list: ")
+    topic_dict = TopicList()
+    len_dict = len(topic_dict)
+    topic_arr = []
+    for idx,topic in topic_dict.items():
+        topic_arr.append([topic[0]])
+    df = pd.DataFrame(np.array(topic_arr),index=range(1,len_dict+1),columns=['Topic'])
+    st.dataframe(df.T)        
+
+    topic = st.number_input(f"Choose a topic (1 to {len_dict}): ",format="%i",min_value=1,max_value=len_dict,step=1)
     limit = st.text_input("Enter limit post: ")
     start_crawl = st.button("crawl")
 
@@ -211,11 +213,7 @@ elif app_mode == 'News Crawler':
             else:
                 st.text(f'Post title: {key}')
                 st.text("This post has no comment")
-               
-    def convert_df(df):
-        # IMPORTANT: Cache the conversion to prevent computation on every rerun
-        return df.to_csv(index=None).encode('utf-8')
-
+            
     csv = convert_df(df_final)
 
     st.download_button(
@@ -265,9 +263,7 @@ elif app_mode == 'Facebook Crawler':
             else:
                 st.text('this post has 0 comment')
 
-    def convert_df(df):
-        # IMPORTANT: Cache the conversion to prevent computation on every rerun
-        return df.to_csv(index=None).encode('utf-8')
+
 
     csv = convert_df(df_down)
 
