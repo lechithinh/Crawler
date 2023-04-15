@@ -12,21 +12,21 @@ options.add_experimental_option('excludeSwitches', ['enable-logging'])
 options.add_argument('headless') #do not open browser
 driver = webdriver.Chrome(service= Service(PATH), options=options)
 driver.maximize_window()
-driver.get("https://www.facebook.com/UIT.Fanpage")
+
 
 
 POST_CONTAINER_PATH = "//div[@class = 'x1yztbdb x1n2onr6 xh8yej3 x1ja2u2z']"
 BUTTON_SHOWMORE_PATH = "//div[text() = 'See more']"
 POST_PATH = "//div[@data-ad-preview='message']"
 BUTTON_MOSTREL_PATH = "//span[text() = 'Most relevant']/ancestor::div[contains(@class,'x1i10hfl xjbqb8w')]"
-BUTTON_SHOWALLCMT_PATH = "//span[text() = 'All comments']"
+BUTTON_SHOWALLCMT_PATH = "//span[text() = 'All comments']/ancestor::div[contains(@role,'menuitem')]"
 BUTTON_CMTVIEWMORE_PATH = "//span[contains(text(),'View')]/ancestor::div[contains(@class,'x1i10hfl xjbqb8w')]"
 USER_NAME_PATH = "//span[@class = 'x3nfvp2']//span"
 USER_CMT_PATH = "//div[@dir='auto']"
 output_dict = {}
 
 
-def crawl_post(idx, num_post, driver):
+def crawl_post(idx, num_post):
     for i in range(idx, num_post + 1):
         container_path = f"//div[@aria-posinset = '{i}']"
         try:
@@ -49,9 +49,13 @@ def crawl_post(idx, num_post, driver):
         for btn in show_all_cmt:
             driver.execute_script('arguments[0].click()', btn)
 
-        cmt_view_more = driver.find_elements(By.XPATH, "{}{}".format(container_path, BUTTON_CMTVIEWMORE_PATH))
-        for cmt in cmt_view_more:
-            driver.execute_script('arguments[0].click()', cmt)
+        try:
+            cmt_view_more = WebDriverWait(driver, 5).until(EC.presence_of_all_elements_located((By.XPATH, "{}{}".format(container_path, BUTTON_CMTVIEWMORE_PATH))))
+        except:
+            pass
+        else:
+            for cmt in cmt_view_more:
+                driver.execute_script('arguments[0].click()', cmt)
 
         time.sleep(3)
         post_dict = {}
@@ -78,19 +82,20 @@ def crawl_post(idx, num_post, driver):
 
             output_dict[posts_text] = post_dict
 
-def crawlFB(limit):
+def crawlFB(limit,url):
+    driver.get(url)
     num_post = 0
     while limit:
-        timeout = time.time() + 0.5
+        timeout = time.time() + 0.2
         while True:
             while True:
-                driver.execute_script("window.scrollTo(0, window.scrollY + 40);")
+                driver.execute_script("window.scrollTo(0, window.scrollY + 50);")
                 if time.time() > timeout:
                     break
             post_container = driver.find_elements(By.XPATH,"{}".format(POST_CONTAINER_PATH))
             if len(post_container) >= (5 + num_post):
                 break
-        time.sleep(1)
+        time.sleep(2)
 
         if limit > 5:
             idx = num_post + 1
@@ -100,6 +105,6 @@ def crawlFB(limit):
             idx = num_post + 1
             num_post = num_post + limit
             limit = 0
-        crawl_post(idx,num_post,driver)
+        crawl_post(idx,num_post)
 
     return output_dict
