@@ -151,15 +151,21 @@ elif app_mode == 'Image Crawler': #fix storing locally
     unsafe_allow_html=True,
 )
 
-    
     query = st.text_input('Input the image query')
     number_images = st.text_input("Input the number of images ")
-    crawl = st.button('crawl')
+    Image_Folder = st.text_input('Input download path (optional)')
+    crawl = st.button('crawl') 
+    download = st.checkbox('download')
     if crawl:
-        image_path = ImageCrawl(query,int(number_images))
-        image_iterator = paginator("Select a sunset page", image_path)
+        image_path, imagelinks, image_content = ImageCrawl(query,int(number_images),Image_Folder, download)
+        image_iterator = paginator("Select a sunset page", imagelinks)
         indices_on_page, images_on_page = map(list, zip(*image_iterator))
-        st.image(images_on_page, width=100, caption=indices_on_page)
+        st.image(images_on_page, width=150, caption=indices_on_page)   
+        if download:
+            for i in range(len(image_path)):
+                with open(image_path[i], 'wb') as file:
+                    file.write(image_content[i])
+
 
 elif app_mode == 'News Crawler':
 

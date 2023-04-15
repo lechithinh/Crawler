@@ -1,49 +1,71 @@
-import time
 import os
-import pandas as pd
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
-import urllib.request
+import requests 
+from bs4 import BeautifulSoup 
 
-PATH = "C:\seleniumdriver\chromedriver.exe"
-options = webdriver.ChromeOptions()
-options.add_experimental_option('excludeSwitches', ['enable-logging'])
-options.add_argument('headless')
-driver = webdriver.Chrome(service= Service(PATH), options=options)
-driver.maximize_window()
+Google_Image = 'https://www.google.com/search?site=&tbm=isch&source=hp&biw=1873&bih=990&'
 
-URL_IMAGE = "https://www.google.com/search?tbm=isch&q="
-IMAGE_PATH = "//img[@class = 'rg_i Q4LuWd']"
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+    'Accept-Encoding': 'none',
+    'Accept-Language': 'en-US,en;q=0.9,vi-VN;q=0.8,vi;q=0.7',
+    'Connection': 'keep-alive',
+} 
 
-def ImageCrawl(query, num_images):    
-    Image_Folder = query.replace(' ', '') + "Image"
+
+
+def ImageCrawl(query, num_images,Image_Folder, isDownload):    
+    if Image_Folder == "":
+        Image_Folder = query.replace(' ', '') + "Image"
     
     #Store Image
-    if not os.path.exists(Image_Folder):
+    if not os.path.exists(Image_Folder) and isDownload:
         os.mkdir(Image_Folder)
     return download_images(query,num_images,Image_Folder)
-
-
-def download_images(query,num_images,Image_Folder):    
-    query = query.replace(' ',"+")
-    FULL_URL = URL_IMAGE + query
-    driver.get(FULL_URL)
-
-    while True:
-        image = driver.find_elements(By.XPATH,IMAGE_PATH)
-        if len(image) < num_images:
-            driver.execute_script("window.scrollTo(0, window.scrollY + 50);")
-        else:
-            break
     
+    
+def download_images(query,num_images,Image_Folder):    
+    search_url = Google_Image + 'q=' + query 
+    response = requests.get(search_url, headers=headers)
+    html = response.text 
+    b_soup = BeautifulSoup(html, 'html.parser') 
+    results = b_soup.findAll('img', {'class': 'rg_i Q4LuWd'})
+
+    count = 0
+    imagelinks= []
+    for res in results:
+        try:
+            link = res['data-src']
+            imagelinks.append(link)
+            count = count + 1
+            if (count >= num_images):
+                break
+            
+        except KeyError:
+            continue
+            
+
     image_path = []
-    for idx,img in enumerate(image):
-        if idx > num_images-1:
-            break
-        imagename = Image_Folder + '/' + f'img{idx+1}.png'
+    image_content = []
+    for i, imagelink in enumerate(imagelinks):
+       
+        response = requests.get(imagelink)
+        imagename = Image_Folder + '/' + query.replace(' ', '') + str(i+1) + '.jpg'
         image_path.append(imagename)
-        urllib.request.urlretrieve(img.get_attribute('src'),imagename)
-    return image_path
+        image_content.append(response.content)
+ 
+
+    return image_path, imagelinks, image_content
+    
+if __name__ =="__main__":
+    query = input("Enter the query: ")
+    limit = int(input("Enter the limite: "))
+    Image_Folder = query.replace(' ', '') + "Image"
+    if not os.path.exists(Image_Folder):
+        os.mkdir(Image_Folder)
+    image_path, imagelinks = download_images(query, limit,Image_Folder)
+    print(imagelinks)
+    print(image_path)
+  
+
