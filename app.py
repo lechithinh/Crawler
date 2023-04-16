@@ -256,10 +256,21 @@ elif app_mode == 'Facebook Crawler':
     
 
     df_down = pd.DataFrame()
+    url = st.text_input("Enter the url of a facebook page")
+    if url:
+        try:
+            if url.startswith("https://www.facebook.com/groups"):
+                st.write('Invalid URL')
+            elif url.startswith("https://www.facebook.com/"):
+                st.write('Valid URL')
+            else:
+                st.write('Invalid URL')
+        except ValueError:
+            st.write('Invalid URL')
     limit_post = st.text_input("Enter the number of posts")
     start_crawl = st.button("crawl")
     if limit_post and start_crawl:
-        result = crawlFB(int(limit_post))
+        result = crawlFB(int(limit_post),url)
         for key, value in result.items():
             st.text(f"The content post: {key}")
             if isinstance(value, dict):
