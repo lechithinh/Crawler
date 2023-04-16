@@ -15,7 +15,7 @@ driver.get("https://vnexpress.net")
 def crawl_post(url_topic, limit,output_dict):
     driver.get(url_topic)
 
-    post = driver.find_elements(By.XPATH,"//article[contains(@class, 'item-news')]/h3[@class = 'title-news']/a")
+    post = driver.find_elements(By.XPATH,"//article[contains(@class, 'item-news')]/h3[@class = 'title-news']/a[contains(@href,'vnexpress')]")
 
     link_post = []
     title_posts = []
@@ -56,6 +56,8 @@ def crawl_post(url_topic, limit,output_dict):
 
         else:
             for usr in user_name:
+                if usr.text == '':
+                    continue
                 for cmt_short in user_cmt_short:
                     if cmt_short.text.find(usr.text, 0, len(usr.text)) != -1:
                         cmt_dict[usr.text] = cmt_short.text[len(usr.text):]
