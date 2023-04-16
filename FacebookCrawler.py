@@ -76,10 +76,10 @@ def crawl_post(idx, num_post):
                     post_dict[name_val] = 'cmt khong phai dang text'
                 else:
                     cmt_val = cmt_user_cmt.text
-                    if cmt_val == ' ':
+                    if cmt_val == '':
                         post_dict[name_val] = 'cmt khong phai dang text'
-                    post_dict[name_val] = cmt_val
-
+                    else:
+                        post_dict[name_val] = cmt_val
             output_dict[posts_text] = post_dict
 
 def crawlFB(limit,url):
