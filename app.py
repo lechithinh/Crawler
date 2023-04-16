@@ -219,7 +219,7 @@ elif app_mode == 'News Crawler':
             else:
                 st.text(f'Post title: {key}')
                 st.text("This post has no comment")
-            
+                            
     csv = convert_df(df_final)
 
     st.download_button(
@@ -269,16 +269,18 @@ elif app_mode == 'Facebook Crawler':
             st.write('Invalid URL')
     limit_post = st.text_input("Enter the number of posts")
     start_crawl = st.button("crawl")
+    result = {}
     if limit_post and start_crawl:
         result = crawlFB(int(limit_post),url)
         for key, value in result.items():
-            st.text(f"The content post: {key}")
+            st.text(f"The content post: {key}") 
             if isinstance(value, dict):
                 df = pd.DataFrame(value.items(), columns=['userName', 'userComment'])
-                st.write(df)
+                st.write(df) 
                 df_down = df_down.append(df)
             else:
-                st.text('this post has 0 comment')
+                st.text('this post has 0 comment') 
+        result.clear()
 
 
 
